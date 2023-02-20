@@ -5,7 +5,7 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs14.x
-  region: eu-west-1
+  region: us-east-1
   # setup profile for AWS CLI.
   # profile: node-aws
 
@@ -19,7 +19,7 @@ plugins:
 
 custom:
   client:
-    bucketName: my-store-app
+    bucketName: react-custom-store-app
     distributionFolder: dist
   s3BucketName: ${self:custom.client.bucketName}
 
@@ -76,7 +76,7 @@ resources:
           Origins:
             - DomainName: !GetAtt WebAppS3Bucket.RegionalDomainName
               ## An identifier for the origin which must be unique within the distribution
-              Id: myS3Origin
+              Id: reactApp
               ## In case you don't want to restrict the bucket access use CustomOriginConfig and remove S3OriginConfig
               S3OriginConfig:
                 OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${OriginAccessIdentity}
@@ -111,7 +111,7 @@ resources:
               Cookies:
                 Forward: none
             ## The origin id defined above
-            TargetOriginId: myS3Origin
+            TargetOriginId: reactApp
             ## The protocol that users can use to access the files in the origin. To allow HTTP use `allow-all`
             ViewerProtocolPolicy: redirect-to-https
             Compress: true
