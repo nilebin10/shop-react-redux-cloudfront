@@ -1,15 +1,18 @@
 import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 type CSVFileImportProps = {
   url: string;
   title: string;
+  setErrorCB: (err:any) => void
 };
 
-export default function CSVFileImport({ url, title }: CSVFileImportProps) {
+export default function CSVFileImport({ url, title, setErrorCB }: CSVFileImportProps) {
   const [file, setFile] = React.useState<File>();
+
+  localStorage.setItem('token', 'bmlsZWJpbjEwOlRFU1RfUEFTU1dPUkQ=');
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -26,22 +29,43 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
   const uploadFile = async () => {
     console.log("uploadFile to", url);
 
+    const headers = {
+      Authorization: `Basic ${localStorage.getItem('token')}`
+    }
+
     // Get the presigned URL
-    const response = await axios({
-      method: "GET",
-      url,
-      params: {
-        name: encodeURIComponent(file?.name || ''),
-      },
-    });
-    console.log("File to upload: ", file?.name);
-    console.log("Uploading to: ", response.data);
-    const result = await fetch(response.data.signedUrl, {
-      method: "PUT",
-      body: file,
-    });
-    console.log("Result: ", result);
-    setFile(undefined);
+    try{
+      const response = await axios({
+        method: "GET",
+        url,
+        headers,
+        params: {
+          name: encodeURIComponent(file?.name || ''),
+        },
+      });
+
+      console.log("File to upload: ", file?.name);
+      console.log("Uploading to: ", response.data);
+      const result = await fetch(response.data.signedUrl, {
+        method: "PUT",
+        body: file,
+      });
+      console.log("Result: ", result);
+      setFile(undefined);
+
+    } catch(err: any) {
+      if(err.response && err.response.status == 403){
+        setErrorCB({
+          text: err.response?.message
+        })
+      }
+
+      if(err.response && err.response.status == 401){
+        setErrorCB({
+          text: "User is not authorized to make request"
+        })
+      }
+    }
   };
   return (
     <Box>
